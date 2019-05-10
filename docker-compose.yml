@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  scheduler-api:
+    container_name: backend
+    # image: node:8.11.1
+    build: ./
+    command: npm start
+    working_dir: /usr/src/scheduler-api
+    ports: 
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - "./:/usr/src/scheduler-api"
+
+  postgres:
+    container_name: postgres
+    build: ./postgres
+    env_file:
+      - .env
+    ports:
+      - "5431:5432"
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    
