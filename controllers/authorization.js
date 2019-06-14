@@ -5,25 +5,27 @@ const requireAuth = (req, res, next) => {
     const {authorization} = req.headers;
 
     if (!authorization) {
-        res.status(401).json('unauthorized');
+        return res.status(401).json('unauthorized');
     }
 
     return redisClient.get(authorization, (err, reply) => {
         if (err || !reply) {
-            res.status(401).json('unauthorized');
+            return res.status(401).json('unauthorized');
         }
         try {
             const data = jwt.verify(authorization,process.env.JWT_SECRET);
-            if (!data.id) {
-                throw new Error();
+            
+            if (!data.id || !data.type) {
+                return res.status(401).json('unauthorized');
             }
-            req.body.id = data.id;
+            req.body.id = data.id
+            req.body.type = data.type;
+            return next();
+            
         } catch(err) {
             res.status(401).json('unauthorized');
         }
-
-        console.log(reply);
-        return next();
+        
     });
 }
 

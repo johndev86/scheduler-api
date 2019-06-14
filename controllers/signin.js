@@ -34,8 +34,8 @@ const getAuthTokenId = (req, res) => {
     })
 }
 
-const signToken = (id) => {
-    const jwtPayload = { id };
+const signToken = (id, type) => {
+    const jwtPayload = { id, type };
     return jwt.sign(jwtPayload, process.env.JWT_SECRET, {expiresIn: '2 days'});
 }
 
@@ -44,8 +44,8 @@ const setToken = (key, value) => {
 }
 
 const createSession = (user) => {
-    const { user_id } = user;
-    const token = signToken(user_id);
+    const { user_id, user_type } = user;
+    const token = signToken(user_id, user_type);
     return setToken(token, user_id)
     .then(() => ({success: 'true', token}))
     .catch(()=>Promise.reject('failed to create session'));

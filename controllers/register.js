@@ -30,6 +30,10 @@ const handleRegister =  (req, res, db, bcrypt) => {
                                 res.json(user[0]);
                             })
                     })
+                    .catch((err) => {
+                        console.log(err);
+                        res.status(400).json('failed');
+                    });
             })
         })
     });

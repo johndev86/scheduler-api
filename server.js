@@ -3,6 +3,23 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const morgan = require('morgan');
+const fs = require('fs')
+const rfs = require('rotating-file-stream')
+
+// logging
+const path = require('path')
+const logDirectory = path.join(__dirname, 'log')
+ 
+// ensure log directory exists
+fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory)
+ 
+// create a rotating write stream
+var accessLogStream = rfs('access.log', {
+  interval: '1d', // rotate daily
+  path: logDirectory
+})
+ 
+// setup the logger
 require('dotenv').config();
 const compression = require('compression');
 
@@ -16,8 +33,11 @@ if (process.env.DATABASE_URL === 'localhost') {
   }
 }
 
+const auth = require('./controllers/authorization');
 const register = require('./controllers/register');
 const signin = require('./controllers/signin');
+const profile = require('./controllers/profile');
+const schedule = require('./controllers/schedule');
 
 const db = require('knex')({
     client: 'pg',
@@ -27,26 +47,26 @@ const db = require('knex')({
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
-app.use(morgan('combined'));
+app.use(morgan('combined',  { stream: accessLogStream }));
 app.use(compression());
 
 app.get('/', (req, res) => { res.send('api working') });
 app.post('/register', (req, res) => {register.handleRegister(req, res, db, bcrypt)});
 app.post('/signin', (req, res) => {signin.signinAuthentication(req, res, db, bcrypt)});
+app.get('/profile', auth.requireAuth, (req, res) => {profile.getUserProfile(req, res, db)});
+app.post('/profile', auth.requireAuth, (req, res) => { profile.updateUserProfile(req, res, db) });
+app.post('/getschedule', auth.requireAuth, (req, res) => { schedule.getSchedule(req, res, db) });
+app.post('/setappointment', auth.requireAuth, (req, res) => { schedule.setAppointment(req, res, db) });
+app.get('/getstafflist', auth.requireAuth, (req, res) => { schedule.getStaffList(req, res, db) });
 
 /* TODO: 
-
-    ** get user profile (id in jwt, type in jwt):
-        *Clients can only get self and all providers
-        *Providers can get all providers, all clients
-    ** update user profile (id in jwt, type in jwt)
 
     DB schema:
     users
         -name: varchar(50)
         -user_id: int primary key
         -email: varchar(100)
-        -joined: 
+        -joined: datetime
         -type: varchar(50) (client, provider, admin, etc)
         -description: TEXT (html format)
         -profile_img: TEXT (link to Amazon S3 bucket)
@@ -62,21 +82,22 @@ app.post('/signin', (req, res) => {signin.signinAuthentication(req, res, db, bcr
         -hash: varchar(100)
         -id: int primary key
 
-    schedule
-        -schedule_id: int primary key
+    appointments
+        -appointment_id: int primary key
         -type: varchar(50) ()
         -time_from: datetime (YYYY/MM/DD HH/mm)
         -time_to: datetime (YYYY/MM/DD HH/mm)
         -title: varchar(200)
         -note: TEXT
+        -pending: boolean
         -recurring: boolean
         -recurr_schedule: TEXT - json format: 
             {
                 every: wk | 2wk | 3wk | 4wk
             }
         
-    user_schedule
-        -schedule_id: int FOREIGN KEY
+    user_appointment
+        -appointment_id: int FOREIGN KEY
         -user_id: int FOREIGN KEY
 
 
@@ -108,8 +129,8 @@ app.post('/signin', (req, res) => {signin.signinAuthentication(req, res, db, bcr
         }
     }
 
-    ** add appointment (for user: id in jwt, type: in jwt, with users: input, note: input)
-    add appointment json format:
+    ** set appointment (for user: id in jwt, type: in jwt, with users: input, note: input)
+    set appointment json format:
     {
         from: YYYY/MM/DD HH/mm
         to: YYYY/MM/DD HH/mm
