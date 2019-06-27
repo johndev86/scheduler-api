@@ -60,7 +60,6 @@ const signinAuthentication = (req, res, db, bcrypt) => {
         })
         .then(session => res.json(session))
         .catch(err => {
-            console.log('catching error: ', err);
             res.status(400).json(err)
         }));
 }

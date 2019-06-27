@@ -57,6 +57,7 @@ app.get('/profile', auth.requireAuth, (req, res) => {profile.getUserProfile(req,
 app.post('/profile', auth.requireAuth, (req, res) => { profile.updateUserProfile(req, res, db) });
 app.post('/getschedule', auth.requireAuth, (req, res) => { schedule.getSchedule(req, res, db) });
 app.post('/setappointment', auth.requireAuth, (req, res) => { schedule.setAppointment(req, res, db) });
+app.post('/deleteappointment', auth.requireAuth, (req, res) => { schedule.deleteAppointment(req, res, db) });
 app.get('/getstafflist', auth.requireAuth, (req, res) => { schedule.getStaffList(req, res, db) });
 
 /* TODO: 

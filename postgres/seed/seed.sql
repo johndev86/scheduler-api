@@ -10,6 +10,7 @@ INSERT INTO users (email, name, joined, user_type, description, profile_img)
 values ('client@email.com', 'Client 1', '2018-01-01', 'client', 'blahblah I use this service', 'https://somelocation.com/img2.jpg');
 
 INSERT INTO login (hash, email) values ('$2a$10$OdWBo9oIifMog91/AxbTxu0FrIwczAUVwsWqhNqEWfqHs9ieERIe2', 'john@email.com');
+INSERT INTO login (hash, email) values ('$2a$10$OdWBo9oIifMog91/AxbTxu0FrIwczAUVwsWqhNqEWfqHs9ieERIe2', 'laura@email.com');
 INSERT INTO login (hash, email) values ('$2a$10$OdWBo9oIifMog91/AxbTxu0FrIwczAUVwsWqhNqEWfqHs9ieERIe2', 'client@email.com');
 
 INSERT INTO appointments (type, time_from, time_to, title, note, recurring, pending)
